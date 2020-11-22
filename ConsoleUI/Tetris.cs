@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using Microsoft.Extensions.Configuration;
 
@@ -27,8 +28,10 @@ namespace ConsoleUI
         private int _pieceCount;
         private int _speedCount;
         private bool _forceDown;
-        private bool _moveDownFailed;
+        private bool _nextPiece;
+        private int _score;
 
+        private readonly List<int> _fullLines = new List<int>();
 
         public Tetris(IConfiguration config, ScreenBuffer screenBuffer)
         {
@@ -40,6 +43,7 @@ namespace ConsoleUI
             _currentY = 0;
 
             InitPlayingField();
+            SpawnPiece();
         }
 
         public void Run()
@@ -63,20 +67,28 @@ namespace ConsoleUI
                     _speedCount = 0;
                 }
 
-                if (_moveDownFailed)
+                if (_nextPiece)
                 {
                     LockPiece();
-                    // CheckForLines();
+                    CheckForLines();
                     SpawnPiece();
+
+                    // update score
+                    _score += 25;
+                    if (_fullLines.Count > 0)
+                    {
+                        // for every line 2^<num of lines> *100
+                        _score += (1 << _fullLines.Count) * 100;
+                    }
+
                     // Update difficulty every 50 pieces
                     _pieceCount++;
-                    if (_pieceCount % 50 == 0)
-                        if (_speed >= 10)
-                        {
-                            _speed--;
-                        }
+                    if (_pieceCount % 50 == 0 && _speed >= 10)
+                    {
+                        _speed--;
+                    }
 
-                    _moveDownFailed = false;
+                    _nextPiece = false;
                 }
 
                 // RENDER OUTPUT ===========================
@@ -85,18 +97,78 @@ namespace ConsoleUI
                 // draw tetromino field
                 _screenBuffer.Draw2D(_playingField, _fieldWidth, _fieldHeight, _fieldStartX, _fieldStartY);
 
+                // draw score
+                _screenBuffer.Draw($"Score: {_score}", _fieldStartX + _fieldWidth + 6, 16);
+
                 // draw current piece
                 _screenBuffer.Draw2D(GetRotatedPiece(_currentPiece, _currentRotation), 4, 4, _fieldStartX + _currentX, _fieldStartY + _currentY, '.');
 
-                // output to screen
-                _screenBuffer.DrawScreen();
+                //draw line wait then move stuff down
+                if (_fullLines.Count > 0)
+                {
+                    // Display Frame (cheekily to draw lines)
+                    _screenBuffer.DrawScreen();
+                    Thread.Sleep(400); // Delay a bit
+
+                    RemoveFullLines();
+                }
+                else
+                {
+                    // output to screen
+                    _screenBuffer.DrawScreen();
+                }
             }
 
             _screenBuffer.ClearScreen();
-            _screenBuffer.Draw("GameOver", 10, 10);
+            _screenBuffer.Draw("Game Over!", 10, 10);
+            _screenBuffer.Draw("Press enter key to exit.", 5, 13);
             _screenBuffer.DrawScreen();
 
             Console.ReadLine();
+        }
+
+        private void RemoveFullLines()
+        {
+            foreach (int line in _fullLines)
+            {
+                for (int px = 1; px < _fieldWidth - 1; px++)
+                {
+                    for (int py = line; py > 0; py--)
+                    {
+                        _playingField[py * _fieldWidth + px] = _playingField[(py - 1) * _fieldWidth + px];
+                    }
+
+                    _playingField[px] = ' ';
+                }
+            }
+
+            _fullLines.Clear();
+        }
+
+        private void CheckForLines()
+        {
+            for (int py = 0; py < 4; py++)
+            {
+                if (_currentY + py < _fieldHeight - 1)
+                {
+                    bool bLine = true;
+                    for (int px = 1; px < _fieldWidth - 1; px++)
+                    {
+                        bLine &= _playingField[(_currentY + py) * _fieldWidth + px] != ' ';
+                    }
+
+                    if (bLine)
+                    {
+                        // Remove Line, set to =
+                        for (int px = 1; px < _fieldWidth - 1; px++)
+                        {
+                            _playingField[(_currentY + py) * _fieldWidth + px] = '=';
+                        }
+
+                        _fullLines.Add(_currentY + py);
+                    }
+                }
+            }
         }
 
         private void SpawnPiece()
@@ -146,7 +218,8 @@ namespace ConsoleUI
                 }
                 else
                 {
-                    _moveDownFailed = true;
+                    // move down failed, ask for next piece
+                    _nextPiece = true;
                 }
             }
 
@@ -169,7 +242,8 @@ namespace ConsoleUI
                 }
                 else
                 {
-                    _moveDownFailed = true;
+                    // move down failed, ask for next piece
+                    _nextPiece = true;
                 }
             }
         }
