@@ -111,7 +111,7 @@ namespace ConsoleUI
             }
 
             _screenBuffer.ClearScreenBuffer();
-            _screenBuffer.Draw("Game Over!", 10, 10);
+            _screenBuffer.Draw($"Game Over! Score: {_score}", 10, 10);
             _screenBuffer.Draw("Press enter key to exit.", 5, 13);
             _screenBuffer.DrawScreen();
 

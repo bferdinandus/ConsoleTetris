@@ -27,7 +27,12 @@
         /// <summary>
         /// The down arrow key.
         /// </summary>
-        Down
+        Down,
+
+        /// <summary>
+        /// The Z key.
+        /// </summary>
+        Z = 0x5A
     }
 
     /// <summary>
