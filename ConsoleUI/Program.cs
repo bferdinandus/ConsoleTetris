@@ -16,9 +16,8 @@ namespace ConsoleUI
             IHost host = Host.CreateDefaultBuilder()
                 .ConfigureServices((context, services) =>
                 {
+                    services.AddSingleton<Tetris>();
                     services.AddSingleton<ScreenBuffer>();
-
-                    services.AddTransient<Tetris>();
                 })
                 .Build();
 

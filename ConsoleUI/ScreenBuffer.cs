@@ -15,6 +15,7 @@ namespace ConsoleUI
             _height = config.GetValue<int>("screenHeight");
 
             _screenBufferArray = new char[_width, _height]; //main buffer array
+            ClearScreen();
 
             Console.CursorVisible = false;
             Console.SetWindowSize(_width, _height);
@@ -37,11 +38,11 @@ namespace ConsoleUI
             string screenBuffer = "";
 
             //iterate through buffer, adding each value to screenBuffer
-            for (int iy = 0; iy < _height - 1; iy++)
+            for (int y = 0; y < _height - 1; y++)
             {
-                for (int ix = 0; ix < _width; ix++)
+                for (int x = 0; x < _width; x++)
                 {
-                    screenBuffer += _screenBufferArray[ix, iy];
+                    screenBuffer += _screenBufferArray[x, y];
                 }
             }
 
@@ -52,6 +53,33 @@ namespace ConsoleUI
 
             _screenBufferArray = new char[_width, _height];
             //note that the screen is NOT cleared at any point as this will simply overwrite the existing values on screen. Clearing will cause flickering again.
+        }
+
+        public void Draw2D(char[] playingField, int fieldWidth, int fieldHeight, int posX, int posY, char? transparentChar = null)
+        {
+            for (int x = 0; x < fieldWidth; x++)
+            {
+                for (int y = 0; y < fieldHeight; y++)
+                {
+                    char currentChar = playingField[y * fieldWidth + x];
+                    if (transparentChar == null || currentChar != transparentChar)
+                    {
+                        _screenBufferArray[x + posX, y + posY] = currentChar;
+                    }
+                }
+            }
+        }
+
+        public void ClearScreen()
+        {
+            // fill screen buffer with spaces
+            for (int y = 0; y < _height - 1; y++)
+            {
+                for (int x = 0; x < _width; x++)
+                {
+                    _screenBufferArray[x, y] = ' ';
+                }
+            }
         }
     }
 }
