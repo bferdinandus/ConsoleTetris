@@ -14,12 +14,11 @@ namespace ConsoleUI
             BuildConfig(builder);
 
             IHost host = Host.CreateDefaultBuilder()
-                .ConfigureServices((context, services) =>
-                {
-                    services.AddSingleton<Tetris>();
-                    services.AddSingleton<ScreenBuffer>();
-                })
-                .Build();
+                             .ConfigureServices((context, services) => {
+                                 services.AddSingleton<Tetris>();
+                                 services.AddSingleton<ScreenBuffer>();
+                             })
+                             .Build();
 
             Tetris tetrisInstance = ActivatorUtilities.CreateInstance<Tetris>(host.Services);
 
@@ -29,9 +28,9 @@ namespace ConsoleUI
         private static void BuildConfig(ConfigurationBuilder builder)
         {
             builder.SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true, reloadOnChange: true)
-                .AddEnvironmentVariables();
+                   .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+                   .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true, reloadOnChange: true)
+                   .AddEnvironmentVariables();
         }
     }
 }

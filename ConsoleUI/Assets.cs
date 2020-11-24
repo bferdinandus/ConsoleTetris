@@ -2,8 +2,7 @@
 {
     public static class Assets
     {
-        public static readonly string[] Tetromino =
-        {
+        public static readonly string[] Tetromino = {
             "..X." +
             "..X." +
             "..X." +

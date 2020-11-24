@@ -50,7 +50,7 @@
         /// </returns>
         public static bool IsKeyDown(KeyCode key)
         {
-            return (GetKeyState((int)key) & KeyPressed) != 0;
+            return (GetKeyState((int) key) & KeyPressed) != 0;
         }
 
         /// <summary>
