@@ -8,12 +8,11 @@ namespace ConsoleUI
     public class Tetris
     {
         private readonly ScreenBuffer _screenBuffer;
-        private int _width;
-        private int _height;
-        private const int _fieldWidth = 12;
-        private const int _fieldHeight = 18;
-        private const int _fieldStartX = 10;
-        private const int _fieldStartY = 10;
+
+        private const int FieldWidth = 12;
+        private const int FieldHeight = 18;
+        private const int FieldStartX = 10;
+        private const int FieldStartY = 10;
 
         private char[] _playingField;
 
@@ -33,13 +32,11 @@ namespace ConsoleUI
 
         private readonly List<int> _fullLines = new List<int>();
 
-        public Tetris(IConfiguration config, ScreenBuffer screenBuffer)
+        public Tetris(ScreenBuffer screenBuffer)
         {
             _screenBuffer = screenBuffer;
-            _width = config.GetValue<int>("screenWidth");
-            _height = config.GetValue<int>("screenHeight");
 
-            _currentX = _fieldWidth / 2;
+            _currentX = FieldWidth / 2;
             _currentY = 0;
 
             InitPlayingField();
@@ -48,6 +45,10 @@ namespace ConsoleUI
 
         public void Run()
         {
+            if (!_screenBuffer.InitBuffer()) {
+                return;
+            }
+
             // loop
             while (!_gameOver) {
                 // GAME TIMING =============================
@@ -89,13 +90,13 @@ namespace ConsoleUI
                 _screenBuffer.Draw("Hello World!", 0, 0);
 
                 // draw tetromino field
-                _screenBuffer.Draw2D(_playingField, _fieldWidth, _fieldHeight, _fieldStartX, _fieldStartY);
+                _screenBuffer.Draw2D(_playingField, FieldWidth, FieldHeight, FieldStartX, FieldStartY);
 
                 // draw score
-                _screenBuffer.Draw($"Score: {_score}", _fieldStartX + _fieldWidth + 6, 16);
+                _screenBuffer.Draw($"Score: {_score}", FieldStartX + FieldWidth + 6, 16);
 
                 // draw current piece
-                _screenBuffer.Draw2D(GetRotatedPiece(_currentPiece, _currentRotation), 4, 4, _fieldStartX + _currentX, _fieldStartY + _currentY, '.');
+                _screenBuffer.Draw2D(GetRotatedPiece(_currentPiece, _currentRotation), 4, 4, FieldStartX + _currentX, FieldStartY + _currentY, '.');
 
                 //draw line wait then move stuff down
                 if (_fullLines.Count > 0) {
@@ -121,9 +122,9 @@ namespace ConsoleUI
         private void RemoveFullLines()
         {
             foreach (int line in _fullLines) {
-                for (int px = 1; px < _fieldWidth - 1; px++) {
+                for (int px = 1; px < FieldWidth - 1; px++) {
                     for (int py = line; py > 0; py--) {
-                        _playingField[py * _fieldWidth + px] = _playingField[(py - 1) * _fieldWidth + px];
+                        _playingField[py * FieldWidth + px] = _playingField[(py - 1) * FieldWidth + px];
                     }
 
                     _playingField[px] = ' ';
@@ -136,16 +137,16 @@ namespace ConsoleUI
         private void CheckForLines()
         {
             for (int py = 0; py < 4; py++) {
-                if (_currentY + py < _fieldHeight - 1) {
+                if (_currentY + py < FieldHeight - 1) {
                     bool bLine = true;
-                    for (int px = 1; px < _fieldWidth - 1; px++) {
-                        bLine &= _playingField[(_currentY + py) * _fieldWidth + px] != ' ';
+                    for (int px = 1; px < FieldWidth - 1; px++) {
+                        bLine &= _playingField[(_currentY + py) * FieldWidth + px] != ' ';
                     }
 
                     if (bLine) {
                         // Remove Line, set to =
-                        for (int px = 1; px < _fieldWidth - 1; px++) {
-                            _playingField[(_currentY + py) * _fieldWidth + px] = '=';
+                        for (int px = 1; px < FieldWidth - 1; px++) {
+                            _playingField[(_currentY + py) * FieldWidth + px] = '=';
                         }
 
                         _fullLines.Add(_currentY + py);
@@ -156,7 +157,7 @@ namespace ConsoleUI
 
         private void SpawnPiece()
         {
-            _currentX = _fieldWidth / 2;
+            _currentX = FieldWidth / 2;
             _currentY = 0;
             _currentRotation = 0;
             Random rand = new Random();
@@ -172,7 +173,7 @@ namespace ConsoleUI
             for (int px = 0; px < 4; px++) {
                 for (int py = 0; py < 4; py++) {
                     if (Assets.Tetromino[_currentPiece][Rotate(px, py, _currentRotation)] != '.') {
-                        _playingField[(_currentY + py) * _fieldWidth + (_currentX + px)] = (char) (65 + _currentPiece);
+                        _playingField[(_currentY + py) * FieldWidth + (_currentX + px)] = (char) (65 + _currentPiece);
                     }
                 }
             }
@@ -231,10 +232,10 @@ namespace ConsoleUI
 
         private void InitPlayingField()
         {
-            _playingField = new char[_fieldWidth * _fieldHeight];
-            for (int x = 0; x < _fieldWidth; x++) {
-                for (int y = 0; y < _fieldHeight; y++) {
-                    _playingField[y * _fieldWidth + x] = x == 0 || x == _fieldWidth - 1 || y == _fieldHeight - 1 ? '#' : ' ';
+            _playingField = new char[FieldWidth * FieldHeight];
+            for (int x = 0; x < FieldWidth; x++) {
+                for (int y = 0; y < FieldHeight; y++) {
+                    _playingField[y * FieldWidth + x] = x == 0 || x == FieldWidth - 1 || y == FieldHeight - 1 ? '#' : ' ';
                 }
             }
         }
@@ -253,10 +254,10 @@ namespace ConsoleUI
             for (int px = 0; px < 4; px++) {
                 for (int py = 0; py < 4; py++) {
                     int pieceIndex = Rotate(px, py, rotation);
-                    int fieldIndex = (posY + py) * _fieldWidth + posX + px;
+                    int fieldIndex = (posY + py) * FieldWidth + posX + px;
 
-                    if (posX + px >= 0 && posX + px < _fieldWidth) {
-                        if (posY + py >= 0 && posY + py < _fieldHeight) {
+                    if (posX + px >= 0 && posX + px < FieldWidth) {
+                        if (posY + py >= 0 && posY + py < FieldHeight) {
                             if (Assets.Tetromino[tetromino][pieceIndex] == 'X' && _playingField[fieldIndex] != ' ') {
                                 return false; // fail on first hit
                             }

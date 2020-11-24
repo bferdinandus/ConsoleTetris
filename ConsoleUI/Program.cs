@@ -14,22 +14,31 @@ namespace ConsoleUI
             BuildConfig(builder);
 
             IHost host = Host.CreateDefaultBuilder()
-                             .ConfigureServices((context, services) => {
-                                 services.AddSingleton<Tetris>();
-                                 services.AddSingleton<ScreenBuffer>();
-                             })
+                             .ConfigureServices((context, services) => { ConfigureServices(services); })
                              .Build();
 
-            Tetris tetrisInstance = ActivatorUtilities.CreateInstance<Tetris>(host.Services);
+            var instance = ActivatorUtilities.CreateInstance<Tetris>(host.Services);
+            //var instance = ActivatorUtilities.CreateInstance<TestFrameRate>(host.Services);
 
-            tetrisInstance.Run();
+            instance.Run();
+        }
+
+        public static void ConfigureServices(IServiceCollection services)
+        {
+            services.Configure<ScreenOptions>(o => {
+                o.Width = 120;
+                o.Height = 40;
+            });
+
+            services.AddSingleton<ScreenBuffer>();
+            services.AddSingleton<ConsoleEngine>();
         }
 
         private static void BuildConfig(ConfigurationBuilder builder)
         {
             builder.SetBasePath(Directory.GetCurrentDirectory())
-                   .AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
-                   .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", optional: true, reloadOnChange: true)
+                   .AddJsonFile("appsettings.json", false, true)
+                   .AddJsonFile($"appsettings.{Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT") ?? "Production"}.json", true, true)
                    .AddEnvironmentVariables();
         }
     }
