@@ -7,7 +7,7 @@
     /// Key code documentation:
     /// http://msdn.microsoft.com/en-us/library/dd375731%28v=VS.85%29.aspx
     /// </remarks>
-    internal enum KeyCode : int
+    internal enum KeyCode
     {
         /// <summary>
         /// The left arrow key.

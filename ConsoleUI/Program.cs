@@ -18,7 +18,6 @@ namespace ConsoleUI
                              .Build();
 
             var instance = ActivatorUtilities.CreateInstance<Tetris>(host.Services);
-            //var instance = ActivatorUtilities.CreateInstance<TestFrameRate>(host.Services);
 
             instance.Run();
         }
@@ -30,7 +29,8 @@ namespace ConsoleUI
                 o.Height = 40;
             });
 
-            services.AddSingleton<ScreenBuffer>();
+            services.AddSingleton<Tetris>();
+            services.AddSingleton<ConsoleEngine>();
             services.AddSingleton<ConsoleEngine>();
         }
 

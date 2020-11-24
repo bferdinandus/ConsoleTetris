@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Text;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 
 namespace ConsoleUI
