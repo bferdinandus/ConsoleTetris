@@ -31,7 +31,7 @@ namespace ConsoleUI
 
             services.AddSingleton<Tetris>();
             services.AddSingleton<ConsoleEngine>();
-            services.AddSingleton<ConsoleEngine>();
+            services.AddSingleton<ScreenBuffer>();
         }
 
         private static void BuildConfig(ConfigurationBuilder builder)

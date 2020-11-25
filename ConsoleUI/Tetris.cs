@@ -13,7 +13,7 @@ namespace ConsoleUI
         private const int FieldStartX = 10;
         private const int FieldStartY = 10;
 
-        private char[] _playingField;
+        private CharacterInfo[] _playingField;
 
         private int _currentPiece = 2;
         private int _currentRotation = 1;
@@ -86,13 +86,13 @@ namespace ConsoleUI
                 }
 
                 // RENDER OUTPUT ===========================
-                _screenBuffer.Draw("Hello World!", 0, 0);
+                _screenBuffer.DrawText("Hello World!", 0, 0);
 
                 // draw tetromino field
                 _screenBuffer.Draw2D(_playingField, FieldWidth, FieldHeight, FieldStartX, FieldStartY);
 
                 // draw score
-                _screenBuffer.Draw($"Score: {_score}", FieldStartX + FieldWidth + 6, 16);
+                _screenBuffer.DrawText($"Score: {_score}", FieldStartX + FieldWidth + 6, 16, ScreenBuffer.Green);
 
                 // draw current piece
                 _screenBuffer.Draw2D(GetRotatedPiece(_currentPiece, _currentRotation), 4, 4, FieldStartX + _currentX, FieldStartY + _currentY, '.');
@@ -111,11 +111,24 @@ namespace ConsoleUI
             }
 
             _screenBuffer.ClearScreenBuffer();
-            _screenBuffer.Draw($"Game Over! Score: {_score}", 10, 10);
-            _screenBuffer.Draw("Press enter key to exit.", 5, 13);
+            _screenBuffer.DrawText($"Game Over! Score: {_score}", 10, 10, ScreenBuffer.Red);
+            _screenBuffer.DrawText("Press enter key to exit.", 5, 13, ScreenBuffer.Magenta);
             _screenBuffer.DrawScreen();
 
             Console.ReadLine();
+        }
+
+        private static string PieceColor(int piece)
+        {
+            return piece switch {
+                0 => ScreenBuffer.Blue,
+                1 => ScreenBuffer.Cyan,
+                2 => ScreenBuffer.Green,
+                3 => ScreenBuffer.Magenta,
+                4 => ScreenBuffer.Red,
+                5 => ScreenBuffer.Yellow,
+                _ => ScreenBuffer.White
+            };
         }
 
         private void RemoveFullLines()
@@ -126,7 +139,7 @@ namespace ConsoleUI
                         _playingField[py * FieldWidth + px] = _playingField[(py - 1) * FieldWidth + px];
                     }
 
-                    _playingField[px] = ' ';
+                    _playingField[px].Glyph = ' ';
                 }
             }
 
@@ -139,13 +152,14 @@ namespace ConsoleUI
                 if (_currentY + py < FieldHeight - 1) {
                     bool bLine = true;
                     for (int px = 1; px < FieldWidth - 1; px++) {
-                        bLine &= _playingField[(_currentY + py) * FieldWidth + px] != ' ';
+                        bLine &= _playingField[(_currentY + py) * FieldWidth + px].Glyph != ' ';
                     }
 
                     if (bLine) {
                         // Remove Line, set to =
                         for (int px = 1; px < FieldWidth - 1; px++) {
-                            _playingField[(_currentY + py) * FieldWidth + px] = '=';
+                            _playingField[(_currentY + py) * FieldWidth + px].Glyph = '=';
+                            _playingField[(_currentY + py) * FieldWidth + px].FgColor = ScreenBuffer.White;
                         }
 
                         _fullLines.Add(_currentY + py);
@@ -172,7 +186,8 @@ namespace ConsoleUI
             for (int px = 0; px < 4; px++) {
                 for (int py = 0; py < 4; py++) {
                     if (Assets.Tetromino[_currentPiece][Rotate(px, py, _currentRotation)] != '.') {
-                        _playingField[(_currentY + py) * FieldWidth + (_currentX + px)] = (char) (65 + _currentPiece);
+                        _playingField[(_currentY + py) * FieldWidth + (_currentX + px)].Glyph = '\u2588';
+                        _playingField[(_currentY + py) * FieldWidth + (_currentX + px)].FgColor = PieceColor(_currentPiece);
                     }
                 }
             }
@@ -215,14 +230,14 @@ namespace ConsoleUI
             }
         }
 
-        private static char[] GetRotatedPiece(int piece, int rotation)
+        private static CharacterInfo[] GetRotatedPiece(int piece, int rotation)
         {
-            char[] rotatedPiece = new char[4 * 4];
+            CharacterInfo[] rotatedPiece = new CharacterInfo[4 * 4];
 
             for (int px = 0; px < 4; px++) {
                 for (int py = 0; py < 4; py++) {
                     int pieceIndex = Rotate(px, py, rotation);
-                    rotatedPiece[py * 4 + px] = Assets.Tetromino[piece][pieceIndex] == '.' ? '.' : (char) (65 + piece);
+                    rotatedPiece[py * 4 + px] = new CharacterInfo { Glyph = Assets.Tetromino[piece][pieceIndex] == '.' ? '.' : '\u2588', FgColor = PieceColor(piece) };
                 }
             }
 
@@ -231,10 +246,10 @@ namespace ConsoleUI
 
         private void InitPlayingField()
         {
-            _playingField = new char[FieldWidth * FieldHeight];
+            _playingField = new CharacterInfo[FieldWidth * FieldHeight];
             for (int x = 0; x < FieldWidth; x++) {
                 for (int y = 0; y < FieldHeight; y++) {
-                    _playingField[y * FieldWidth + x] = x == 0 || x == FieldWidth - 1 || y == FieldHeight - 1 ? '#' : ' ';
+                    _playingField[y * FieldWidth + x] = new CharacterInfo { Glyph = x == 0 || x == FieldWidth - 1 || y == FieldHeight - 1 ? '#' : ' ' };
                 }
             }
         }
@@ -257,7 +272,7 @@ namespace ConsoleUI
 
                     if (posX + px >= 0 && posX + px < FieldWidth) {
                         if (posY + py >= 0 && posY + py < FieldHeight) {
-                            if (Assets.Tetromino[tetromino][pieceIndex] == 'X' && _playingField[fieldIndex] != ' ') {
+                            if (Assets.Tetromino[tetromino][pieceIndex] == 'X' && _playingField[fieldIndex].Glyph != ' ') {
                                 return false; // fail on first hit
                             }
                         }

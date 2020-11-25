@@ -21,9 +21,9 @@ namespace ConsoleUI
         private static extern IntPtr GetStdHandle(int nStdHandle);
 
         [DllImport("kernel32.dll")]
-        public static extern uint GetLastError();
+        private static extern uint GetLastError();
 
-        public bool SetupConsole(int width, int height)
+        public static bool SetupConsole(int width, int height)
         {
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 IntPtr iStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
