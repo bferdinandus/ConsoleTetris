@@ -21,7 +21,7 @@ namespace ConsoleUI
         private int _currentX;
         private int _currentY;
 
-        private int _speed = 20;
+        private int _speed = 20; // force block down every 20 "game ticks"
         private bool _rotateHold;
         private bool _gameOver;
         private int _pieceCount;
@@ -30,9 +30,11 @@ namespace ConsoleUI
         private bool _nextPiece;
         private int _score;
 
+        private float _sinceLastTick;
+
         private readonly List<int> _fullLines = new List<int>();
 
-        public Tetris() {}
+        // public Tetris() {}
 
         protected override bool OnUserCreate()
         {
@@ -70,42 +72,46 @@ namespace ConsoleUI
             return true;
         }*/
 
-        protected override bool OnUserUpdate(float elapsedTime)
+        protected override bool OnUserUpdate(long elapsedTime)
         {
             if (!_gameOver) {
                 // GAME TIMING =============================
-                Thread.Sleep(50);
-                _speedCount++;
-                _forceDown = _speedCount == _speed;
+                _sinceLastTick += (float) elapsedTime / TicksPerMillisecond;
+                if (_sinceLastTick > 50) {
+                    _sinceLastTick = 0;
+                    _speedCount++;
 
-                // INPUT ===================================
+                    _forceDown = _speedCount == _speed;
 
-                // GAME LOGIC ==============================
-                UpdatePieceLocation();
+                    // INPUT ===================================
 
-                if (_forceDown) {
-                    _speedCount = 0;
-                }
+                    // GAME LOGIC ==============================
+                    UpdatePieceLocation();
 
-                if (_nextPiece) {
-                    LockPiece();
-                    CheckForLines();
-                    SpawnPiece();
-
-                    // update score
-                    _score += 25;
-                    if (_fullLines.Count > 0) {
-                        // for every line 2^<num of lines> *100
-                        _score += (1 << _fullLines.Count) * 100;
+                    if (_forceDown) {
+                        _speedCount = 0;
                     }
 
-                    // Update difficulty every 50 pieces
-                    _pieceCount++;
-                    if (_pieceCount % 50 == 0 && _speed >= 10) {
-                        _speed--;
-                    }
+                    if (_nextPiece) {
+                        LockPiece();
+                        CheckForLines();
+                        SpawnPiece();
 
-                    _nextPiece = false;
+                        // update score
+                        _score += 25;
+                        if (_fullLines.Count > 0) {
+                            // for every line 2^<num of lines> *100
+                            _score += (1 << _fullLines.Count) * 100;
+                        }
+
+                        // Update difficulty every 50 pieces
+                        _pieceCount++;
+                        if (_pieceCount % 50 == 0 && _speed >= 10) {
+                            _speed--;
+                        }
+
+                        _nextPiece = false;
+                    }
                 }
 
                 // RENDER OUTPUT ===========================
@@ -116,6 +122,8 @@ namespace ConsoleUI
 
                 // draw score
                 DrawText($"Score: {_score}", FieldStartX + FieldWidth + 6, 16, AnsiColor.Green);
+                DrawText($"Level: {21 - _speed}", FieldStartX + FieldWidth + 6, 17, AnsiColor.Green);
+                DrawText($"Blocks: {_pieceCount}", FieldStartX + FieldWidth + 6, 18, AnsiColor.Green);
 
                 // draw current piece
                 Draw2D(GetRotatedPiece(_currentPiece, _currentRotation), 4, 4, FieldStartX + _currentX, FieldStartY + _currentY, '.');
@@ -126,8 +134,6 @@ namespace ConsoleUI
                     Thread.Sleep(400); // Delay a bit
 
                     RemoveFullLines();
-                } else {
-                    // output to screen
                 }
             }
 
@@ -136,6 +142,7 @@ namespace ConsoleUI
                 DrawText("Press Z key to exit.", 5, 13, AnsiColor.Magenta);
 
                 if (NativeKeyboard.IsKeyDown(KeyCode.Z)) {
+                    DrawText("Byeee. Shutting down application...", 5, 15, AnsiColor.Cyan);
                     return false;
                 }
             }

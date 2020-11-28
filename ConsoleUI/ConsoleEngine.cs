@@ -27,25 +27,26 @@ namespace ConsoleUI
         private static extern uint GetLastError();
 
         private CharacterInfo[] _screenBuffer;
-        private int _width;
-        private int _height;
-        protected long _lastFramerateUpdate;
-        protected int _lastFramerateCount;
-        protected int _framerateCount;
+        private int _screenWidth;
+        private int _screenHeight;
 
         private bool _loopActive;
 
-        protected const double _ticksPerSecond = 1e7;
+        protected const long TicksPerMillisecond = 10000;
+        protected const long TicksPerSecond = TicksPerMillisecond * 1000;
+        protected const long TicksPerMinute = TicksPerSecond * 60;
+        protected const long TicksPerHour = TicksPerMinute * 60;
+        protected const long TicksPerDay = TicksPerHour * 24;
 
-        protected ConsoleEngine() {}
+        // protected ConsoleEngine() {}
 
         protected abstract bool OnUserCreate();
-        protected abstract bool OnUserUpdate(float elapsedTime);
+        protected abstract bool OnUserUpdate(long elapsedTime);
 
         public bool SetupConsole(int width, int height)
         {
-            _width = width;
-            _height = height;
+            _screenWidth = width;
+            _screenHeight = height;
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) {
                 IntPtr iStdOut = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -57,7 +58,7 @@ namespace ConsoleUI
 
                 outConsoleMode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING | DISABLE_NEWLINE_AUTO_RETURN;
                 if (!SetConsoleMode(iStdOut, outConsoleMode)) {
-                    Console.WriteLine($"failed to set output console mode, error code: {GetLastError()}");
+                    Console.WriteLine($"failed to set output console mode, error code: {GetLastError().ToString()}");
                     Console.ReadKey();
                     return false;
                 }
@@ -68,8 +69,8 @@ namespace ConsoleUI
             Console.SetWindowSize(width, height);
             Console.SetWindowPosition(0, 0);
 
-            _screenBuffer = new CharacterInfo[_width * _height]; //main buffer array
-            for (int i = 0; i < _width * _height; i++) {
+            _screenBuffer = new CharacterInfo[_screenWidth * _screenHeight]; //main buffer array
+            for (int i = 0; i < _screenWidth * _screenHeight; i++) {
                 _screenBuffer[i] = new CharacterInfo();
             }
 
@@ -105,7 +106,8 @@ namespace ConsoleUI
                 }
 
                 // update title
-                Console.Title = $"-=[ Tetris ]=- Framerate: {(int) (1.0 / (elapsedTime / _ticksPerSecond))} Date: {DateTime.Now}";
+                float elapsedSeconds = (float) elapsedTime / TicksPerSecond;
+                Console.Title = $"-=[ Tetris ]=- Framerate: {(int) (1 / elapsedSeconds)} Date: {DateTime.Now}";
                 DrawScreen();
             }
 
@@ -115,17 +117,16 @@ namespace ConsoleUI
         private void ClearScreenBuffer()
         {
             // fill screen buffer with spaces
-            for (int i = 0; i < _width * _height; i++) {
+            for (int i = 0; i < _screenWidth * _screenHeight; i++) {
                 _screenBuffer[i].Glyph = ' ';
             }
         }
 
         private void DrawScreen()
         {
-            StringBuilder screenBuffer = new StringBuilder();
+            StringBuilder screenBuffer = new StringBuilder(_screenWidth * _screenHeight);
             AnsiColor? currentColor = null;
-            for (int i = 0; i < _screenBuffer.Length; i++) {
-                CharacterInfo characterInfo = _screenBuffer[i];
+            foreach (CharacterInfo characterInfo in _screenBuffer) {
                 if (characterInfo.FgColor != null) {
                     // if we have a color for this glyph
                     if (characterInfo.FgColor != currentColor) {
@@ -156,13 +157,13 @@ namespace ConsoleUI
 
         private string ColorString(AnsiColor? color) => color == null ? string.Empty : $"\u001b[{(int) color}m";
 
-        public void Draw(char glyph, int x, int y, AnsiColor? color)
+        private void Draw(char glyph, int x, int y, AnsiColor? color)
         {
-            _screenBuffer[y * _width + x].Glyph = glyph;
-            _screenBuffer[y * _width + x].FgColor = color;
+            _screenBuffer[y * _screenWidth + x].Glyph = glyph;
+            _screenBuffer[y * _screenWidth + x].FgColor = color;
         }
 
-        public void DrawText(string text, int x, int y, AnsiColor? color = null)
+        protected void DrawText(string text, int x, int y, AnsiColor? color = null)
         {
             //iterate through the array, adding values to buffer
             for (int i = 0; i < text.Length; i++) {
@@ -170,14 +171,14 @@ namespace ConsoleUI
             }
         }
 
-        public void Draw2D(CharacterInfo[] playingField, int fieldWidth, int fieldHeight, int posX, int posY, char? transparentChar = null)
+        protected void Draw2D(CharacterInfo[] playingField, int fieldWidth, int fieldHeight, int posX, int posY, char? transparentChar = null)
         {
             for (int y = 0; y < fieldHeight; y++) {
                 for (int x = 0; x < fieldWidth; x++) {
                     CharacterInfo currentChar = playingField[y * fieldWidth + x];
                     if (transparentChar == null || currentChar.Glyph != transparentChar) {
-                        _screenBuffer[(y + posY) * _width + x + posX].Glyph = currentChar.Glyph;
-                        _screenBuffer[(y + posY) * _width + x + posX].FgColor = currentChar.FgColor;
+                        _screenBuffer[(y + posY) * _screenWidth + x + posX].Glyph = currentChar.Glyph;
+                        _screenBuffer[(y + posY) * _screenWidth + x + posX].FgColor = currentChar.FgColor;
                     }
                 }
             }
