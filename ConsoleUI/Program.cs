@@ -19,19 +19,24 @@ namespace ConsoleUI
 
             var instance = ActivatorUtilities.CreateInstance<Tetris>(host.Services);
 
-            instance.Run();
+            if (instance.SetupConsole(120, 40)) {
+                instance.Start();
+            } else {
+                Console.WriteLine("Error during console construction.");
+                Console.WriteLine("Press eny key to exit.");
+
+                Console.ReadKey();
+            }
         }
 
         public static void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<ScreenOptions>(o => {
+            /*services.Configure<ScreenOptions>(o => {
                 o.Width = 120;
                 o.Height = 40;
-            });
+            });*/
 
             services.AddSingleton<Tetris>();
-            services.AddSingleton<ConsoleEngine>();
-            services.AddSingleton<ScreenBuffer>();
         }
 
         private static void BuildConfig(ConfigurationBuilder builder)

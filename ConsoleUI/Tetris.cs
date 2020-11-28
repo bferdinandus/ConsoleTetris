@@ -1,12 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
+using ConsoleUI.Models;
 
 namespace ConsoleUI
 {
-    public class Tetris
+    public class Tetris : ConsoleEngine
     {
-        private readonly ScreenBuffer _screenBuffer;
+        //private readonly ConsoleEngine _consoleEngine;
 
         private const int FieldWidth = 12;
         private const int FieldHeight = 18;
@@ -31,25 +32,47 @@ namespace ConsoleUI
 
         private readonly List<int> _fullLines = new List<int>();
 
-        public Tetris(ScreenBuffer screenBuffer)
-        {
-            _screenBuffer = screenBuffer;
+        public Tetris() {}
 
+        protected override bool OnUserCreate()
+        {
             _currentX = FieldWidth / 2;
             _currentY = 0;
 
             InitPlayingField();
             SpawnPiece();
+
+            return true;
         }
 
-        public void Run()
+        /*protected override bool OnUserUpdateTest(float elapsedTime)
         {
-            if (!_screenBuffer.InitBuffer()) {
-                return;
+            DrawText($"{DateTime.Now}", 10, 10, AnsiColor.Red);
+            DrawText($"elapsedTime: {elapsedTime}", 10, 11, AnsiColor.Green);
+            DrawText($"Framerate: {1.0 / (elapsedTime / _ticksPerSecond)}", 10, 13, AnsiColor.Yellow);
+
+
+            long millisecondNow = DateTime.Now.Ticks;
+            if (millisecondNow - _lastFramerateUpdate >= _ticksPerSecond) {
+                _lastFramerateCount = _framerateCount;
+                _framerateCount = 0;
+                _lastFramerateUpdate = millisecondNow;
             }
 
-            // loop
-            while (!_gameOver) {
+            _framerateCount++;
+
+            DrawText($"Framerate count: {_lastFramerateCount}", 10, 15, AnsiColor.Yellow);
+
+            if (NativeKeyboard.IsKeyDown(KeyCode.Z)) {
+                return false;
+            }
+
+            return true;
+        }*/
+
+        protected override bool OnUserUpdate(float elapsedTime)
+        {
+            if (!_gameOver) {
                 // GAME TIMING =============================
                 Thread.Sleep(50);
                 _speedCount++;
@@ -86,48 +109,50 @@ namespace ConsoleUI
                 }
 
                 // RENDER OUTPUT ===========================
-                _screenBuffer.DrawText("Hello World!", 0, 0);
+                DrawText("Hello World!", 0, 0);
 
                 // draw tetromino field
-                _screenBuffer.Draw2D(_playingField, FieldWidth, FieldHeight, FieldStartX, FieldStartY);
+                Draw2D(_playingField, FieldWidth, FieldHeight, FieldStartX, FieldStartY);
 
                 // draw score
-                _screenBuffer.DrawText($"Score: {_score}", FieldStartX + FieldWidth + 6, 16, ScreenBuffer.Green);
+                DrawText($"Score: {_score}", FieldStartX + FieldWidth + 6, 16, AnsiColor.Green);
 
                 // draw current piece
-                _screenBuffer.Draw2D(GetRotatedPiece(_currentPiece, _currentRotation), 4, 4, FieldStartX + _currentX, FieldStartY + _currentY, '.');
+                Draw2D(GetRotatedPiece(_currentPiece, _currentRotation), 4, 4, FieldStartX + _currentX, FieldStartY + _currentY, '.');
 
                 //draw line wait then move stuff down
                 if (_fullLines.Count > 0) {
                     // Display Frame (cheekily to draw lines)
-                    _screenBuffer.DrawScreen();
                     Thread.Sleep(400); // Delay a bit
 
                     RemoveFullLines();
                 } else {
                     // output to screen
-                    _screenBuffer.DrawScreen();
                 }
             }
 
-            _screenBuffer.ClearScreenBuffer();
-            _screenBuffer.DrawText($"Game Over! Score: {_score}", 10, 10, ScreenBuffer.Red);
-            _screenBuffer.DrawText("Press enter key to exit.", 5, 13, ScreenBuffer.Magenta);
-            _screenBuffer.DrawScreen();
+            if (_gameOver) {
+                DrawText($"Game Over! Score: {_score}", 10, 10, AnsiColor.Red);
+                DrawText("Press Z key to exit.", 5, 13, AnsiColor.Magenta);
 
-            Console.ReadLine();
+                if (NativeKeyboard.IsKeyDown(KeyCode.Z)) {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
-        private static string PieceColor(int piece)
+        private static AnsiColor PieceColor(int piece)
         {
             return piece switch {
-                0 => ScreenBuffer.Blue,
-                1 => ScreenBuffer.Cyan,
-                2 => ScreenBuffer.Green,
-                3 => ScreenBuffer.Magenta,
-                4 => ScreenBuffer.Red,
-                5 => ScreenBuffer.Yellow,
-                _ => ScreenBuffer.White
+                0 => AnsiColor.Blue,
+                1 => AnsiColor.Cyan,
+                2 => AnsiColor.Green,
+                3 => AnsiColor.Magenta,
+                4 => AnsiColor.Red,
+                5 => AnsiColor.Yellow,
+                _ => AnsiColor.White
             };
         }
 
@@ -159,7 +184,7 @@ namespace ConsoleUI
                         // Remove Line, set to =
                         for (int px = 1; px < FieldWidth - 1; px++) {
                             _playingField[(_currentY + py) * FieldWidth + px].Glyph = '=';
-                            _playingField[(_currentY + py) * FieldWidth + px].FgColor = ScreenBuffer.White;
+                            _playingField[(_currentY + py) * FieldWidth + px].FgColor = AnsiColor.White;
                         }
 
                         _fullLines.Add(_currentY + py);
