@@ -1,4 +1,4 @@
-﻿namespace ConsoleUI.Models
+﻿namespace ConsoleEngine.Models
 {
     public class AnsiAttributes
     {

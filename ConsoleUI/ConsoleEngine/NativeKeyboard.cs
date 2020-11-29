@@ -1,4 +1,4 @@
-﻿namespace ConsoleUI
+﻿namespace ConsoleEngine
 {
     /// <summary>
     /// Codes representing keyboard keys.

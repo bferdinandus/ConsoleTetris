@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Runtime.InteropServices;
 using System.Text;
-using System.Threading.Tasks;
-using ConsoleUI.Models;
+using ConsoleEngine.Models;
 
 // ReSharper disable InconsistentNaming
 
-namespace ConsoleUI
+namespace ConsoleEngine
 {
     public abstract class ConsoleEngine
     {

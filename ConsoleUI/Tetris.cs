@@ -1,11 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using ConsoleUI.Models;
+using ConsoleEngine;
+using ConsoleEngine.Models;
 
 namespace ConsoleUI
 {
-    public class Tetris : ConsoleEngine
+    public class Tetris : ConsoleEngine.ConsoleEngine
     {
         //private readonly ConsoleEngine _consoleEngine;
 
