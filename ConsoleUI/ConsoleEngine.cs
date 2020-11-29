@@ -80,14 +80,14 @@ namespace ConsoleUI
             return true;
         }
 
-        public async void Start()
+        public void Start()
         {
             _loopActive = true;
 
-            await LoopAsync();
+            Loop();
         }
 
-        private Task LoopAsync()
+        private void Loop()
         {
             if (!OnUserCreate()) {
                 _loopActive = false;
@@ -110,8 +110,6 @@ namespace ConsoleUI
                 Console.Title = $"-=[ Tetris ]=- Framerate: {(int) (1 / elapsedSeconds)} Date: {DateTime.Now}";
                 DrawScreen();
             }
-
-            return Task.CompletedTask;
         }
 
         private void ClearScreenBuffer()

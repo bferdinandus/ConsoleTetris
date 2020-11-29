@@ -113,36 +113,36 @@ namespace ConsoleUI
                         _nextPiece = false;
                     }
                 }
+            }
 
-                // RENDER OUTPUT ===========================
-                DrawText("Hello World!", 0, 0);
+            // RENDER OUTPUT ===========================
+            DrawText("Hello World!", 0, 0);
 
-                // draw tetromino field
-                Draw2D(_playingField, FieldWidth, FieldHeight, FieldStartX, FieldStartY);
+            // draw tetromino field
+            Draw2D(_playingField, FieldWidth, FieldHeight, FieldStartX, FieldStartY);
 
-                // draw score
-                DrawText($"Score: {_score}", FieldStartX + FieldWidth + 6, 16, AnsiColor.Green);
-                DrawText($"Level: {21 - _speed}", FieldStartX + FieldWidth + 6, 17, AnsiColor.Green);
-                DrawText($"Blocks: {_pieceCount}", FieldStartX + FieldWidth + 6, 18, AnsiColor.Green);
+            // draw score
+            DrawText($"Score: {_score}", FieldStartX + FieldWidth + 6, 16, AnsiColor.Green);
+            DrawText($"Level: {21 - _speed}", FieldStartX + FieldWidth + 6, 17, AnsiColor.Green);
+            DrawText($"Blocks: {_pieceCount}", FieldStartX + FieldWidth + 6, 18, AnsiColor.Green);
 
-                // draw current piece
-                Draw2D(GetRotatedPiece(_currentPiece, _currentRotation), 4, 4, FieldStartX + _currentX, FieldStartY + _currentY, '.');
+            // draw current piece
+            Draw2D(GetRotatedPiece(_currentPiece, _currentRotation), 4, 4, FieldStartX + _currentX, FieldStartY + _currentY, '.');
 
-                //draw line wait then move stuff down
-                if (_fullLines.Count > 0) {
-                    // Display Frame (cheekily to draw lines)
-                    Thread.Sleep(400); // Delay a bit
+            //draw line wait then move stuff down
+            if (_fullLines.Count > 0) {
+                // Display Frame (cheekily to draw lines)
+                Thread.Sleep(400); // Delay a bit
 
-                    RemoveFullLines();
-                }
+                RemoveFullLines();
             }
 
             if (_gameOver) {
-                DrawText($"Game Over! Score: {_score}", 10, 10, AnsiColor.Red);
-                DrawText("Press Z key to exit.", 5, 13, AnsiColor.Magenta);
+                DrawText($"Game Over! ", FieldStartX + FieldWidth + 6, 14, AnsiColor.Red);
+                DrawText("Press Z key to exit.", FieldStartX + FieldWidth + 6, 20, AnsiColor.Magenta);
 
                 if (NativeKeyboard.IsKeyDown(KeyCode.Z)) {
-                    DrawText("Byeee. Shutting down application...", 5, 15, AnsiColor.Cyan);
+                    DrawText("Byeee. Shutting down application...", FieldStartX + FieldWidth + 6, 22, AnsiColor.Cyan);
                     return false;
                 }
             }
