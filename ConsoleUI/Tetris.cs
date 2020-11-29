@@ -27,11 +27,9 @@ namespace ConsoleUI
         private bool _gameOver;
         private int _pieceCount;
         private int _speedCount;
-        private bool _forceDown;
-        private bool _nextPiece;
         private int _score;
 
-        private float _sinceLastTick;
+        private float _elapsedMilliseconds;
 
         private readonly List<int> _fullLines = new List<int>();
 
@@ -77,23 +75,23 @@ namespace ConsoleUI
         {
             if (!_gameOver) {
                 // GAME TIMING =============================
-                _sinceLastTick += (float) elapsedTime / TicksPerMillisecond;
-                if (_sinceLastTick > 50) {
-                    _sinceLastTick = 0;
+                _elapsedMilliseconds += (float) elapsedTime / TicksPerMillisecond;
+                if (_elapsedMilliseconds > 50) {
+                    _elapsedMilliseconds = 0;
                     _speedCount++;
 
-                    _forceDown = _speedCount == _speed;
+                    bool forceDown = _speedCount == _speed;
 
                     // INPUT ===================================
 
                     // GAME LOGIC ==============================
-                    UpdatePieceLocation();
+                    bool updatePieceSuccess = UpdatePieceLocation(forceDown);
 
-                    if (_forceDown) {
+                    if (forceDown) {
                         _speedCount = 0;
                     }
 
-                    if (_nextPiece) {
+                    if (!updatePieceSuccess) {
                         LockPiece();
                         CheckForLines();
                         SpawnPiece();
@@ -110,8 +108,6 @@ namespace ConsoleUI
                         if (_pieceCount % 50 == 0 && _speed >= 10) {
                             _speed--;
                         }
-
-                        _nextPiece = false;
                     }
                 }
             }
@@ -226,7 +222,7 @@ namespace ConsoleUI
             }
         }
 
-        private void UpdatePieceLocation()
+        private bool UpdatePieceLocation(bool forceDown)
         {
             if (NativeKeyboard.IsKeyDown(KeyCode.Left)) {
                 _currentX -= DoesPieceFit(_currentPiece, _currentRotation, _currentX - 1, _currentY) ? 1 : 0;
@@ -241,7 +237,7 @@ namespace ConsoleUI
                     _currentY++;
                 } else {
                     // move down failed, ask for next piece
-                    _nextPiece = true;
+                    return false;
                 }
             }
 
@@ -252,15 +248,17 @@ namespace ConsoleUI
                 _rotateHold = false;
             }
 
-            if (_forceDown) {
+            if (forceDown) {
                 // Test if piece can be moved down
                 if (DoesPieceFit(_currentPiece, _currentRotation, _currentX, _currentY + 1)) {
                     _currentY++; // It can, so do it!
                 } else {
                     // move down failed, ask for next piece
-                    _nextPiece = true;
+                    return false;
                 }
             }
+
+            return true;
         }
 
         private static CharacterInfo[] GetRotatedPiece(int piece, int rotation)
