@@ -28,6 +28,7 @@ namespace ConsoleUI
         private int _pieceCount;
         private int _speedCount;
         private int _score;
+        private int _linesRemoved;
 
         private float _elapsedMilliseconds;
 
@@ -122,6 +123,7 @@ namespace ConsoleUI
             DrawText($"Score: {_score}", FieldStartX + FieldWidth + 6, 16, AnsiColor.Green);
             DrawText($"Level: {21 - _speed}", FieldStartX + FieldWidth + 6, 17, AnsiColor.Green);
             DrawText($"Blocks: {_pieceCount}", FieldStartX + FieldWidth + 6, 18, AnsiColor.Green);
+            DrawText($"Lines: {_linesRemoved}", FieldStartX + FieldWidth + 6, 19, AnsiColor.Green);
 
             // draw current piece
             Draw2D(GetRotatedPiece(_currentPiece, _currentRotation), 4, 4, FieldStartX + _currentX, FieldStartY + _currentY, '.');
@@ -131,12 +133,13 @@ namespace ConsoleUI
                 // Display Frame (cheekily to draw lines)
                 Thread.Sleep(400); // Delay a bit
 
+                _linesRemoved += _fullLines.Count;
                 RemoveFullLines();
             }
 
             if (_gameOver) {
                 DrawText($"Game Over! ", FieldStartX + FieldWidth + 6, 14, AnsiColor.Red);
-                DrawText("Press Z key to exit.", FieldStartX + FieldWidth + 6, 20, AnsiColor.Magenta);
+                DrawText("Press Z key to exit.", FieldStartX + FieldWidth + 6, 21, AnsiColor.Magenta);
 
                 if (NativeKeyboard.IsKeyDown(KeyCode.Z)) {
                     DrawText("Byeee. Shutting down application...", FieldStartX + FieldWidth + 6, 22, AnsiColor.Cyan);
@@ -147,9 +150,8 @@ namespace ConsoleUI
             return true;
         }
 
-        private static AnsiColor PieceColor(int piece)
-        {
-            return piece switch {
+        private static AnsiColor PieceColor(int piece) =>
+            piece switch {
                 0 => AnsiColor.Blue,
                 1 => AnsiColor.Cyan,
                 2 => AnsiColor.Green,
@@ -158,7 +160,6 @@ namespace ConsoleUI
                 5 => AnsiColor.Yellow,
                 _ => AnsiColor.White
             };
-        }
 
         private void RemoveFullLines()
         {
@@ -168,7 +169,7 @@ namespace ConsoleUI
                         _playingField[py * FieldWidth + px] = _playingField[(py - 1) * FieldWidth + px];
                     }
 
-                    _playingField[px].Glyph = ' ';
+                    _playingField[px] = new CharacterInfo();
                 }
             }
 
@@ -212,8 +213,8 @@ namespace ConsoleUI
         private void LockPiece()
         {
             // It can't move down! Lock the piece in place
-            for (int px = 0; px < 4; px++) {
-                for (int py = 0; py < 4; py++) {
+            for (int py = 0; py < 4; py++) {
+                for (int px = 0; px < 4; px++) {
                     if (Assets.Tetromino[_currentPiece][Rotate(px, py, _currentRotation)] != '.') {
                         _playingField[(_currentY + py) * FieldWidth + (_currentX + px)].Glyph = '\u2588';
                         _playingField[(_currentY + py) * FieldWidth + (_currentX + px)].FgColor = PieceColor(_currentPiece);
